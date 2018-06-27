@@ -13,14 +13,28 @@ class SubjectAnalyzer:
         self.atlas_nii_path = atlas_nii_path
 
         self.load_data()
-        self.calculate_zscore()
-        self.calculate_atlas_zscores()
+        if self.is_data_proper:
+            self.calculate_zscore()
+            self.calculate_atlas_zscores()
+        else:
+            self.error_message = \
+                "The following inputs: {}{}{} have an inconsistent have a dimension mismatch with the subject"
+            self.error_message.format('mean map, ' if self.is_mean_proper else '',
+                'st. dev. map, ' if self.is_sd_proper else '',
+                'atlas, ' if self.is_atlas_proper else '')
 
     def load_data(self):
         self.subject_img = nib.load(self.subject_nii_path)
         self.mean_img = nib.load(self.mean_nii_path)
         self.sd_img = nib.load(self.sd_nii_path)
         self.atlas_img = nib.load(self.atlas_nii_path)
+
+        self.shape = self.subject_img.shape
+        self.is_mean_proper = self.mean_img.shape == self.shape
+        self.is_sd_proper = self.sd_img.shape == self.shape
+        self.is_atlas_proper = self.atlas_img.shape == self.shape
+
+        self.is_data_proper = self.is_mean_proper and self.is_sd_proper and self.is_atlas_proper
 
         self.subject_data = self.subject_img.get_data()
         self.mean_data = self.mean_img.get_data()
@@ -34,6 +48,9 @@ class SubjectAnalyzer:
 
     def calculate_zscore(self):
         self.zscores = (self.subject_data - self.mean_data) / self.sd_data
+        zscores = self.zscores
+        zscores[np.isnan(zscores)] = 0
+        self.significant_zscores = np.where(np.abs(zscores)<=1.96,np.nan,zscores)
 
     def calculate_atlas_zscores(self):
         md = np.zeros(self.atlas_data.max())
