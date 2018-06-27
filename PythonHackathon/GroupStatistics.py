@@ -1,35 +1,70 @@
 import numpy as np
 import nibabel as nib
-import matplotlib.pyplot as plt
-import os
+import pathlib as pl
 
-groupMD_file='/Users/ayam/Documents/PythonHackathon/Data/HealthyControls/groupMD_m.nii.gz'
 
 class GroupStatistics():
     """
-    This class gets a 4d nifti file which contains maps for a group of subjects.
-    It can calculate mean and std across subjects per voxel and generates a relavant nifti map.
+    This class gets a folder that contains raw data files.
+    It merges them into a large array and calculates mean and std per each voxel across all subjects.
+    It returns two maps: mean and std maps.
     """
 
-    def __init__(self,group_file_name):
-        self.groupMD_file=group_file_name
-        self.groupMD_img=nib.load(self.groupMD_file)
-        self.data_all_subjects = self.groupMD_img.get_data()
+    def __init__(self,data_folder):
+        self.data_foldername = data_folder
+
+
+    def run(self,mean=True,std=True):
+        """
+        Runs the methods of this class.
+        :param mean: False if you don't want a mean map as output
+        :param std: False if you don't want a std map as output
+        :return: by default two maps of mean and std of each voxel.
+        """
+        self.merge_subjects()
+        if mean:
+            self.calculate_mean()
+        if std:
+            self.calculate_std()
+
+
+    def merge_subjects(self):
+        """
+        Takes each subject's data and creates an array that contains all subjects.
+        """
+        foldername = pl.Path(self.data_foldername)
+        self.files = [x for x in foldername.glob('*.nii.gz') if x.is_file()]
+        arrays_list_to_stack=[]
+        for i in range(len(self.files)):
+            img=nib.load(str(self.files[i]))
+            arrays_list_to_stack.append(img.get_data())
+        self.group_data=np.stack(arrays_list_to_stack,axis=0)
+
 
     def calculate_mean(self):
-        self.data_mean = np.mean(self.data_all_subjects,axis=3)
+        """
+        Calculates mean per voxel across all subjects
+        :return: nifiti file - mean map
+        """
+        self.data_mean = np.mean(self.group_data,axis=0)
         self.data_mean_img = nib.Nifti1Image(self.data_mean, np.eye(4))
         nib.save(self.data_mean_img, 'data_mean.nii.gz')
 
     def calculate_std(self):
-        self.data_std = np.std(self.data_all_subjects,axis=3)
+        """
+        Calculates std per voxel across all subjects
+        :return: nifiti file - std map
+        """
+        self.data_std = np.std(self.group_data,axis=0)
         self.data_std_img = nib.Nifti1Image(self.data_std, np.eye(4))
         nib.save(self.data_std_img, 'data_std.nii.gz')
 
-#TODO check the results and make sure it does a correct mean and std per voxel,
-#we checked the prepared maps and it looks different.
+    #TODO check the results and make sure it does a correct mean and std per voxel,
+    #we checked the prepared maps and it looks different.
+    #verify that all data is raw and no other files are added
 
-a=GroupStatistics(groupMD_file)
-a.calculate_mean()
-a.calculate_std()
+data_folder='/Users/ayam/Documents/PythonHackathon/Data/HealthyControls/RawData'
+a=GroupStatistics(data_folder)
+a.run()
+
 
