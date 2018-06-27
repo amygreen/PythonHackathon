@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from dipy.segment.mask import median_otsu
 from dipy.core.histeq import histeq
+from nipype.workflows.dmri.fsl.artifacts import ecc_pipeline
 
 
 bvecs_file='/Users/ayam/Documents/PythonHackathon/Data/Stroke/files/bvecs'
@@ -47,10 +48,21 @@ class Preprocessing():
                    cmap='gray', origin='lower')
         plt.show()'''
 
-        
+
+    def eddy_currnets_correction(self,diffustion_nii, difusion_bval, mask_nii):
+        self.ecc = ecc_pipeline()
+        self.ecc.inputs.inputnode.in_file = diffustion_nii
+        self.ecc.inputs.inputnode.in_bval = difusion_bval
+        self.ecc.inputs.inputnode.in_mask = mask_nii
+        self.ecc.run()  # doctest: +SKIP
 
 
 
 
 file=Preprocessing(bvecs_file,bvals_file,dti4d_file,mni_template)
 file.brain_segmentation()
+diffustion_nii='/Users/ayam/Documents/PythonHackathon/Data/Stroke/files/DTI4D.nii'
+difusion_bval='/Users/ayam/Documents/PythonHackathon/Data/Stroke/files/bvals'
+mask_nii='/Users/ayam/Documents/PythonHackathon/PythonHackathon/PythonHackathon/_mask.nii.gz'
+file.eddy_currnets_correction(diffustion_nii,difusion_bval,mask_nii)
+
