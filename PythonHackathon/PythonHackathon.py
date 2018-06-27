@@ -1,4 +1,3 @@
-import pathlib as pl
 import numpy as np
 import pandas as pd
 import nibabel as nib
@@ -7,6 +6,7 @@ class SubjectAnalyzer:
 
     def __init__(self,subject_nii_path,mean_nii_path,sd_nii_path,atlas_nii_path):
 
+        '''Get paths for files'''
         self.subject_nii_path = subject_nii_path
         self.mean_nii_path = mean_nii_path
         self.sd_nii_path = sd_nii_path
