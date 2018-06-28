@@ -53,13 +53,13 @@ class SubjectAnalyzer:
         self.significant_zscores = np.where(np.abs(zscores)<=1.96,np.nan,zscores)
 
     def calculate_atlas_zscores(self):
-        md = np.zeros(self.atlas_data.max())
+        vals = np.zeros(self.atlas_data.max())
         zs = np.zeros(self.atlas_data.max())
         for i in range(1,self.atlas_data.max()+1):
-            md[i-1] = np.nanmean(self.subject_data[self.atlas_data == i])
+            vals[i-1] = np.nanmean(self.subject_data[self.atlas_data == i])
             zs[i-1] = np.nanmean(self.zscores[self.atlas_data == i])
 
-        md_s = pd.Series(md,index = np.arange(1,self.atlas_data.max()+1))
+        vals = pd.Series(vals,index = np.arange(1,self.atlas_data.max()+1))
         zs_s = pd.Series(zs,index = np.arange(1,self.atlas_data.max()+1))
-        self.area_data = pd.DataFrame({'MD': md_s, 'Z-scores': zs_s})
+        self.area_data = pd.DataFrame({'Values': vals, 'Z-scores': zs_s})
         self.area_data.index.name = 'Area'
