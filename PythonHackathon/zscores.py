@@ -53,6 +53,8 @@ class SubjectAnalyzer:
         zscores = self.zscores
         zscores[np.isnan(zscores)] = 0
         self.significant_zscores = np.where(np.abs(zscores)<=1.96,np.nan,zscores)
+        self.significant_zscores_nii = nib.Nifti1Image(self.significant_zscores,self.subject_img.affine)
+        nib.save(self.significant_zscores_nii, 'zs.nii.gz')
 
     def calculate_atlas_results(self):
         vals = np.zeros(self.atlas_data.max())
